@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seedance 2.0 — AI Video Generation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#030303;--sf:rgba(255,255,255,.03);--bd:rgba(255,255,255,.06);
+  --tx:#fafafa;--md:rgba(250,250,250,.45);--md2:rgba(250,250,250,.65);
+  --ac:#00d4ff;--purple:#8b5cf6;--pink:#ec4899;--amber:#f59e0b;
+  --r:12px;--ease:cubic-bezier(.22,1,.36,1)
+}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--tx);font-family:Inter,system-ui,sans-serif;
+  line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;position:relative}
+body::before{content:'';
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 60% 45% at 50% 0%,rgba(0,212,255,.06),transparent),
+             radial-gradient(ellipse 35% 30% at 80% 85%,rgba(139,92,246,.04),transparent)}
+.w{max-width:1140px;margin:0 auto;padding:0 1.5rem;position:relative;z-index:1}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;height:56px;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;padding:0 2rem;
+  background:rgba(3,3,3,.85);backdrop-filter:blur(20px) saturate(160%);
+  border-bottom:1px solid var(--bd)}
+.nv-logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--tx)}
+.nv-s{width:26px;height:26px;border-radius:6px;
+  background:linear-gradient(135deg,var(--ac),var(--purple),var(--pink));
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;color:#fff}
+.nv-n{font-weight:700;font-size:.88rem;letter-spacing:-.01em}
+.nv-n i{font-style:normal;font-size:.55rem;color:var(--md);letter-spacing:.1em;
+  text-transform:uppercase;background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px;margin-left:4px}
+.nv-l{display:flex;align-items:center;gap:1.5rem}
+.nv-l a{font-size:.78rem;color:var(--md2);text-decoration:none;transition:color .2s}
+.nv-l a:hover{color:var(--tx)}
+.nv-btn{background:var(--ac);color:#000;font-weight:600;font-size:.78rem;padding:6px 16px;
+  border-radius:6px;transition:all .3s var(--ease)}
+.nv-btn:hover{box-shadow:0 0 30px rgba(0,212,255,.3);transform:translateY(-1px)}
+
+/* HERO */
+.hero{text-align:center;padding:11rem 0 4rem}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:5px 14px 5px 10px;
+  border-radius:100px;background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.18);
+  font-size:.68rem;font-weight:600;color:var(--ac);margin-bottom:2rem}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--ac);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:.35}50%{opacity:.9}}
+.hero h1{font-size:clamp(2.8rem,8.5vw,7.5rem);font-weight:800;line-height:.92;
+  letter-spacing:-.035em;max-width:760px;margin:0 auto 1.2rem}
+h1 em{font-style:normal;
+  background:linear-gradient(90deg,var(--ac),var(--purple),var(--pink),var(--amber));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:clamp(.9rem,1.2vw,1.05rem);color:var(--md2);max-width:480px;
+  margin:0 auto 2.5rem;font-weight:300;line-height:1.7}
+.ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:5rem}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:14px 24px;border-radius:8px;
+  font-size:.85rem;font-weight:600;text-decoration:none;transition:all .3s var(--ease);border:none;cursor:pointer}
+.btn-f{background:var(--ac);color:#000}
+.btn-f:hover{box-shadow:0 0 40px rgba(0,212,255,.3);transform:translateY(-2px)}
+.btn-g{background:transparent;color:var(--tx);border:1px solid var(--bd)}
+.btn-g:hover{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.15)}
+.btn .a{transition:transform .3s var(--ease)}
+.btn:hover .a{transform:translateX(3px)}
+.vid{position:relative;width:min(95vw,1080px);margin:0 auto;border-radius:14px;overflow:hidden;
+  border:1px solid var(--bd);
+  box-shadow:0 60px 120px rgba(0,0,0,.5),0 0 80px rgba(0,212,255,.06)}
+.vid::before{content:'';position:absolute;inset:-1px;border-radius:15px;
+  background:linear-gradient(180deg,rgba(0,212,255,.12),transparent 50%,transparent 75%,rgba(139,92,246,.08));
+  z-index:-1;pointer-events:none}
+.vid iframe{width:100%;aspect-ratio:16/9;border:none;display:block}
+.vid img{width:100%;display:block;border-radius:14px}
+
+/* MARQUEE */
+.mq{border-bottom:1px solid var(--bd);overflow:hidden;background:rgba(255,255,255,.01);padding:10px 0}
+.mq-in{display:flex;gap:2.5rem;animation:scroll 30s linear infinite}
+.mq-in span{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--md);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.mq-in span::before{content:'';width:3px;height:3px;border-radius:50%;background:var(--bd)}
+@keyframes scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--bd)}
+.st{padding:2.5rem 1rem;text-align:center;border-right:1px solid var(--bd);transition:background .3s}
+.st:last-child{border:none}
+.st:hover{background:rgba(0,212,255,.015)}
+.st-v{font-size:clamp(1.8rem,3.5vw,3rem);font-weight:800;letter-spacing:-.035em;margin-bottom:.2rem}
+.st:nth-child(1) .st-v{color:var(--ac)}
+.st:nth-child(2) .st-v{color:var(--purple)}
+.st:nth-child(3) .st-v{color:var(--pink)}
+.st:nth-child(4) .st-v{color:var(--amber)}
+.st-l{font-size:.68rem;color:var(--md);letter-spacing:.06em;text-transform:uppercase}
+
+/* FEATURES */
+.feat{padding:7rem 0}
+.feat-l{font-size:.62rem;font-weight:600;letter-spacing:.3em;text-transform:uppercase;
+  color:var(--ac);margin-bottom:.75rem}
+.feat h2{font-size:clamp(2rem,4vw,3.2rem);font-weight:800;line-height:1.05;
+  letter-spacing:-.03em;margin-bottom:.75rem;max-width:550px}
+.feat>p{font-size:.95rem;color:var(--md2);max-width:460px;font-weight:300;
+  line-height:1.7;margin-bottom:3.5rem}
+.fg{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.fc{padding:2rem;border:1px solid var(--bd);border-radius:var(--r);background:rgba(255,255,255,.015);
+  transition:all .35s var(--ease)}
+.fc:hover{border-color:rgba(255,255,255,.1);background:rgba(255,255,255,.03);transform:translateY(-2px);
+  box-shadow:0 0 40px rgba(0,0,0,.3)}
+.fc-i{width:40px;height:40px;border-radius:9px;margin-bottom:1.2rem;
+  display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.fc:nth-child(1) .fc-i{background:rgba(0,212,255,.1)}
+.fc:nth-child(2) .fc-i{background:rgba(139,92,246,.1)}
+.fc:nth-child(3) .fc-i{background:rgba(236,72,153,.1)}
+.fc:nth-child(4) .fc-i{background:rgba(16,185,129,.1)}
+.fc:nth-child(5) .fc-i{background:rgba(245,158,11,.1)}
+.fc:nth-child(6) .fc-i{background:rgba(0,212,255,.1)}
+.fc h3{font-size:1rem;font-weight:600;margin-bottom:.4rem;letter-spacing:-.01em}
+.fc p{font-size:.8rem;color:var(--md2);line-height:1.6;font-weight:300;margin:0}
+
+/* CODE */
+.code{padding:5rem 0;background:rgba(255,255,255,.01);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)}
+.code-in{display:grid;grid-template-columns:1fr 1.1fr;gap:4rem;align-items:center}
+.code-l h2{font-size:clamp(1.8rem,3vw,2.5rem);font-weight:800;line-height:1.1;
+  letter-spacing:-.03em;margin-bottom:1rem}
+.code-l p{color:var(--md2);font-size:.9rem;margin-bottom:2rem;line-height:1.7;font-weight:300}
+.cb{background:#0a0a0a;border:1px solid var(--bd);border-radius:10px;padding:1.5rem;
+  font-family:'SF Mono',SFMono-Regular,Consolas,monospace;font-size:.72rem;line-height:1.9;overflow-x:auto}
+.cb .c{color:var(--md)}
+.cb .k{color:#c084fc}
+.cb .s{color:#34d399}
+.cb .n{color:#f59e0b}
+.cb .b{color:var(--ac)}
+.cb .ln{color:var(--md);border-right:1px solid var(--bd);padding-right:1rem;margin-right:1rem;text-align:right}
+
+/* SHOWCASE */
+.show{padding:7rem 0;text-align:center}
+.show h2{font-size:clamp(2rem,4vw,3.2rem);font-weight:800;letter-spacing:-.03em;margin-bottom:1rem}
+.show>p{font-size:.95rem;color:var(--md2);max-width:500px;margin:0 auto 3rem;font-weight:300;line-height:1.7}
+
+/* CTA */
+.cta{text-align:center;padding:5rem 0 8rem;position:relative}
+.cta::before{content:'';position:absolute;bottom:-10%;left:50%;transform:translateX(-50%);
+  width:700px;height:700px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,212,255,.05),transparent 65%);pointer-events:none}
+.cta h2{font-size:clamp(2.2rem,4.5vw,3.5rem);font-weight:800;line-height:1.1;
+  letter-spacing:-.03em;max-width:550px;margin:0 auto 1rem}
+.cta>p{font-size:1rem;color:var(--md2);max-width:420px;margin:0 auto 2rem;font-weight:300}
+.cp{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.cp a{display:inline-flex;align-items:center;gap:8px;padding:1rem 1.5rem;
+  background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:10px;
+  text-decoration:none;color:var(--tx);min-width:160px;justify-content:center;
+  font-weight:500;font-size:.85rem;transition:all .3s var(--ease)}
+.cp a:hover{border-color:rgba(0,212,255,.25);background:rgba(0,212,255,.04);box-shadow:0 0 30px rgba(0,212,255,.08)}
+.cp em{font-style:normal;font-size:1.3rem}
+
+/* FOOTER */
+.ft{padding:2.5rem 0;border-top:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center}
+.ft span{font-size:.68rem;color:var(--md)}
+.ft a{color:var(--md2);text-decoration:none;font-size:.68rem}
+.ft a:hover{color:var(--tx)}
+
+/* MOBILE */
+@media(max-width:768px){
+  .hero{padding:8rem 0 3rem}
+  .fg{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr 1fr;gap:0}
+  .st:nth-child(2){border-right:none}
+  .st:nth-child(3){border-top:1px solid var(--bd)}
+  .code-in{grid-template-columns:1fr;gap:2rem}
+  .nv-l a:not(.nv-btn){display:none}
+  .ft{flex-direction:column;gap:.75rem;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nv-logo">
+    <div class="nv-s">S</div>
+    <span class="nv-n">Seedance<i>v2.0</i></span>
+  </a>
+  <div class="nv-l">
+    <a href="#features">Features</a>
+    <a href="#api">API</a>
+    <a href="#showcase">Showcase</a>
+    <a href="https://ark.byteplus.com/" class="nv-btn">Get API Key →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="w">
+    <div class="badge"><span class="dot"></span> Now Available on BytePlus Ark</div>
+    <h1>From Words<br>to <em>Cinema</em></h1>
+    <p>State-of-the-art generative video from ByteDance. Create cinematic sequences from text, images, or audio. Up to 60 seconds. Up to 4K.</p>
+    <div class="ctas">
+      <a href="#api" class="btn btn-f">Start Generating <span class="a">→</span></a>
+      <a href="https://craigcode78.github.io/the-map-beneath-film/" class="btn btn-g" target="_blank">Watch The Map Beneath ◉</a>
+    </div>
+    <div class="vid">
+      <iframe src="https://craigcode78.github.io/the-map-beneath-film/" allow="autoplay; fullscreen" loading="lazy"></iframe>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="mq">
+  <div class="mq-in">
+    <span>Text to Video</span><span>Image to Video</span><span>Video Extension</span>
+    <span>Audio Sync</span><span>Multi-Reference</span><span>POV Camera</span>
+    <span>16:9 · 9:16 · 1:1</span><span>60s Duration</span>
+    <span>Text to Video</span><span>Image to Video</span><span>Video Extension</span>
+    <span>Audio Sync</span><span>Multi-Reference</span><span>POV Camera</span>
+    <span>16:9 · 9:16 · 1:1</span><span>60s Duration</span>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="w">
+  <div class="stats">
+    <div class="st"><div class="st-v">2.0</div><div class="st-l">Model Generation</div></div>
+    <div class="st"><div class="st-v">60s</div><div class="st-l">Max Duration</div></div>
+    <div class="st"><div class="st-v">4K</div><div class="st-l">Resolution</div></div>
+    <div class="st"><div class="st-v">&lt;2 min</div><div class="st-l">Gen Speed</div></div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<div class="w">
+  <section class="feat" id="features">
+    <div class="feat-l">Capabilities</div>
+    <h2>Built for Anything<br>That Moves</h2>
+    <p>Text, images, video, audio — combine any input. Get cinematic output with motion, depth, and precision.</p>
+    <div class="fg">
+      <div class="fc">
+        <div class="fc-i">✦</div>
+        <h3>Text → Video</h3>
+        <p>Describe any scene, camera, lighting. Generate photorealistic video from pure text prompts.</p>
+      </div>
+      <div class="fc">
+        <div class="fc-i">◈</div>
+        <h3>Image → Video</h3>
+        <p>Bring still images to life. Animate characters, products, or landscapes with natural motion.</p>
+      </div>
+      <div class="fc">
+        <div class="fc-i">⬡</div>
+        <h3>Video Extension</h3>
+        <p>Extend footage seamlessly. Feed the last frame, describe what's next — get perfect continuation.</p>
+      </div>
+      <div class="fc">
+        <div class="fc-i">◉</div>
+        <h3>Audio Sync</h3>
+        <p>Generate or sync audio natively. Music, voiceover, SFX — all in one API call.</p>
+      </div>
+      <div class="fc">
+        <div class="fc-i">⧫</div>
+        <h3>Multi-Reference</h3>
+        <p>Combine images, clips, and audio in one generation. Full control over style and framing.</p>
+      </div>
+      <div class="fc">
+        <div class="fc-i">⚡</div>
+        <h3>Fast Model</h3>
+        <p>Generate 5–60s clips in minutes. The fast model delivers studio quality at production speed.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- CODE -->
+<section class="code" id="api">
+  <div class="w code-in">
+    <div class="code-l feat">
+      <div class="feat-l">API Reference</div>
+      <h2>Three Lines.<br>One Call.</h2>
+      <p>REST API with a clean request body. Describe, set parameters, generate. That's it.</p>
+    </div>
+    <div class="cb">
+<div><span class="c">// Generate a cinematic scene</span></div>
+<div><span class="k">POST</span> <span class="s">/api/v3/contents/generations/tasks</span></div>
+<div>&nbsp;</div>
+<div>{</div>
+<div>&nbsp;&nbsp;<span class="s">"model"</span>: <span class="s">"dreamina-seedance-2.0-fast"</span>,</div>
+<div>&nbsp;&nbsp;<span class="s">"content"</span>: [{</div>
+<div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="s">"type"</span>: <span class="s">"text"</span>,</div>
+<div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="s">"text"</span>: <span class="s">"Cinematic wide shot of an office</span></div>
+<div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="s">high above a city. Soft daylight,</span></div>
+<div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="s">a calm person at a desk. Slow push in."</span></div>
+<div>&nbsp;&nbsp;}],</div>
+<div>&nbsp;&nbsp;<span class="s">"ratio"</span>: <span class="s">"16:9"</span>,</div>
+<div>&nbsp;&nbsp;<span class="s">"duration"</span>: <span class="n">5</span>,</div>
+<div>&nbsp;&nbsp;<span class="s">"watermark"</span>: <span class="b">false</span></div>
+<div>}</div>
+    </div>
+  </div>
+</section>
+
+<!-- SHOWCASE -->
+<section class="show w" id="showcase">
+  <div class="feat-l">Built with Seedance 2.0</div>
+  <h2>The Map Beneath</h2>
+  <p>A 60-second film — 12 shots, voiceover, cinematic score. Generated entirely via the Seedance 2.0 Fast API. Twelve Seedance generations, stitched with FFmpeg, mixed with ElevenLabs voiceover and AI-generated music.</p>
+  <a href="https://craigcode78.github.io/the-map-beneath-film/" class="btn btn-f" target="_blank">Watch Full Film <span class="a">→</span></a>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="w">
+    <div class="feat-l">Get Started</div>
+    <h2>Your API Key is<br>Ready to Go</h2>
+    <p>Access via BytePlus Ark. Free credits included. Instant video generation.</p>
+    <div class="cp">
+      <a href="https://www.byteplus.com/products/modelark" target="_blank">
+        <em>∞</em> Documentation
+      </a>
+      <a href="https://dreamina.bytedance.com/" target="_blank">
+        <em>△</em> Try Dreamina
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="ft w">
+  <span>&copy; 2026 Seedance — Powered by ByteDance</span>
+  <span><a href="https://www.byteplus.com/">BytePlus</a> · <a href="https://dreamina.bytedance.com">Dreamina</a> · Ark API</span>
+</footer>
+
+</body>
+</html>
